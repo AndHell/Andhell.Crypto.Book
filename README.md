@@ -1,6 +1,6 @@
 # Andhell.Crypto.Book
 
-While working on [Andhell.Crypto](https://github.com/AndHell/Andhell.Crypto) (a small cryptographic library in .NET) I started to write down everything I learned on this topic. As the document continues to grow larger and larger, I decided to put a little more effort into it. That’s how I ended up with overview, which, I hope, may also be helpful for others.
+While working on [Andhell.Crypto](https://github.com/AndHell/Andhell.Crypto) (a small cryptographic library in .NET) I started to write down everything I learned on this topic. As the document continues to grow larger and larger, I decided to put a little more effort into it. That’s how I ended up with this overview, which, I hope, may also be helpful for others.
 
 
 ### Disclaimer:  
