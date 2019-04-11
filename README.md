@@ -21,5 +21,5 @@ I'm not an expert in cryptography. Everything in this document is just explained
     - [x] AES
     - [x] Salsa20
 - [ ] Asymmetric Cryptography *Soon*
-- [ ] TLS *Planed*
-- [ ] Designing Protocols and Using Cryptography *Planed*
+- [ ] TLS *Planned*
+- [ ] Designing Protocols and Using Cryptography *Planned*
