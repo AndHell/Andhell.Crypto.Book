@@ -1016,33 +1016,18 @@ Just encrypting messages with the same key is often not what you want in a messa
 
 This construction still has weaknesses. If the key get leaked once, all messages send in the past and future can be decrypted. What one want is something similar to the concept of forward and backward secrecy introduced in the [randomness](#randomness) section. If the key for a message gets leaked, it should not be possible to decrypt any previous send messages as well as  future messages.
 
-To archive this, the key needs to be changed for each message. A protocol that does this is the[Signal Protocol](https://signal.org/docs/specifications/doubleratchet/) used by end-to-end encrypted messengers such as [Signal](https://signal.org) or [WhatsApp](https://www.whatsapp.com/). The Signal Protocol also uses asymmetric key cryptography to exchange new symmetric keys. <!-- Asymmetric keys are explained later. -->
+To archive this, the key needs to be changed for each message. A protocol that does this is the[Signal Protocol](https://signal.org/docs/specifications/doubleratchet/) used by end-to-end encrypted messengers such as [Signal](https://signal.org) or [WhatsApp](https://www.whatsapp.com/). The Signal Protocol also uses asymmetric key cryptography to exchange new symmetric keys. With this step, the Signal protocol also provides backward secrecy and is "self-healing". Even if a key gets compromised, the attacker would not be able to decrypt future messages. The magic’s of asymmetric cryptography are explained below.
 
-# Asymmetric Cryptography  
-Asymmetric Cryptography (also called Public-Key cryptography) uses a pair of keys.
+# Asymmetric Cryptography  *Work In Process*
 
+As explained above, one issue with symmetric cryptography is exchanging the keys in such a way, the no evil Eve is able to see them. This is solved with asymmetric cryptography, which uses a private-public key pair. However, most of the times, it's only revered to as public key cryptography.
 
-
-## Asymmetric Keys
-The biggest difference between secret key and public key cryptography are the keys. Instead of using the same key for encryption and decryption, a pair of keys is needed: the public key and the private key pair.
-
-If Alice wants to encrypt a message for Bob, she can use Bobs public key to do so. Bob then can use his private key to decrypt the message.
-
-Alice can also use her private key, to **sign** the message before sending it to Bob. Bob then can ensure that the message is, indeed, from Alice be verifying the signature with Alice public key.
+Instead of trying to protect a secret key, the public key can be shared freely. If Alice now wants to send an encrypted message to Bob, she would need to grep Bob's public key and encrypt her message with it. Only Bob can then decrypt the message with his private key.
 
 Bob can also use **digital signatures** to provide prove, that he was the one, the published something. By signing the info with his private key, anyone that knows his public key, can verify the signature. These digital signatures are the basis for cryptocurrencies like [BitCoin](https://en.bitcoin.it/wiki/Elliptic_Curve_Digital_Signature_Algorithm), but they can also be used to sign [git commits](https://help.github.com/en/articles/managing-commit-signature-verification).
 
-### Public Key
-The public key can be shared with anyone. Like the name suggest, this key can be public.
-
-A public key can either be used to encrypt a message, so that the receiver can decrypt it with his private key, or used to verify a signature. 
-
-### Private Secret Key
-The private key should **never** be shared. Like the name suggest, this key needs to be kept private/secret.
-
-A private key can either be used to decrypt, or to sign a message.
-
-![Alice sends a singed message to Bob](img/PubKeyRoundTripFull.png)
+The image below shows how Alice would send an encrypted message to Bob after they exchanged there public keys.
+![Alice sends a message to Bob](img/PubKeyRoundTrip.png)
 
 ## Math Basics
 While symmetric encryption is "easy" to understand, since no hard math is involved and bits are only moved around and XORed (sure, in reality it is not that easy), things are different in asymmetric cryptography. Here mathematically hard problems are the basis for secure encryption.
@@ -1063,18 +1048,17 @@ A [finite group](https://en.wikipedia.org/wiki/Finite_group) is a set of numbers
 - **Neutral element**: `a*x = a` *for  4\*1=4 1 is the neutral element* 
 - **Inverse element**: `a*a`<sup>`-1`</sup>` = 1` *for example: `4*4=1 (16 mod 5 = 1)`*
 
-a group that is also *commutative* `a*b = b*a` is called an [Abelian group](https://en.wikipedia.org/wiki/Abelian_group)
+A group that is also *commutative* `a*b = b*a` is called an [Abelian group](https://en.wikipedia.org/wiki/Abelian_group)
 
 Beside *multiplicative* groups, that use *multiplication* as a group operation, they can also be defined with *addition* as group operation.
 
 ### Cyclic Group
 
-A [cyclic group](https://en.wikipedia.org/wiki/Cyclic_group), is a group that can be generated by the powers of an identity element `P`. This element is also called the generator.
+A [cyclic group](https://en.wikipedia.org/wiki/Cyclic_group), is a group that can be generated by the powers of an identity element `P`. This element is also called the **generator**.
 
 `P, P², P³, ...`   
 
-Example for Z<sub>5</sub><sup>*</sup>:  
-generator = **2**
+Example for Z<sub>5</sub><sup>*</sup> can be generated with **2<sup>x</sup>**
 
 |power | element | mod |
 |:-:|:-:|--:|
@@ -1084,7 +1068,7 @@ generator = **2**
 |2<sup>4</sup>|1| *16 mod 5*|
 |2<sup>5</sup>|2| *32 mod 5* same as 2<sup>1</sup>|
 
-generator: **3**
+Or with **3<sup>x</sup>**
 |power | element | mod |
 |:-:|:-:|--:|
 |3<sup>1</sup>|3| *3 mod 5*|
@@ -1100,10 +1084,10 @@ All  Z<sub>p</sub><sup>*</sup> where `p` is prime, are cyclic finite groups.
 RSA was designed by Riverst, Shamir and Adelman, in 1977 while they were trying to prove that the concepts for the [Diffie-Hellmann Key Exchange](#diffie-hellmann-key-exchange) are wrong. Instead of doing so, they came up with RSA.
 
 ### Prime factorization
-RSA is based on the hardness of integer factorization. Given a number `N` with `N = p*q` where `p` and `q` are prime, there is no "fast" algorithm to find `p` and `q`.
-While this is possible to do for small primes, tthere is no efficient algorithm to deal with really large numbers ( >= 1024 bit). 
+RSA is based on the hardness of integer factorization. Given a number `N` with `N = p*q` where `p` and `q` are prime, there is no *fast* algorithm to find `p` and `q`.
+While this is possible to do for small primes, there is no efficient algorithm to deal with really large numbers ( >= 1024 bit). 
 
-The best know algorithm to find the factors is the *general number field sieve ([GNFS](https://www.math.vt.edu/people/brown/doc/briggs_gnfs_thesis.pdf))*. As a result of this algorithm, ≥ 4096 bit keys are needed to archive the desired 128 bit of security. Currently key sizes of 2048 (90 bits of security) or even 4096 are suggested.
+The best know algorithm to find the factors is the *general number field sieve ([GNFS](https://www.math.vt.edu/people/brown/doc/briggs_gnfs_thesis.pdf))*. As a result of this algorithm, ≥ 4096 bit keys are needed to archive the desired 128 bit of security. Currently key sizes of 2048 (90 bits of security) or 4096 are suggested.
 
 ### Key generation
 To generate a RSA key pair five steps are needed.
@@ -1122,12 +1106,12 @@ K<sub>pri</sub>: (d)
 </pre>
 
 ### Encryption
-To encrypt a message, you interpret the messages bytes as integer and compute the message to the power `e` (of the public key) modulo `n`.
+To encrypt a message, you interpret the messages bytes as integer and compute the message to the exponent `e` (of the public key) modulo `n`.
 
-Given `K`<sub>`pub`</sub>: (n, e) and the message `m ∈ Z`<sub>`n`</sub><sup>`*`</sup> `= {1,2,...,n-1}`:  
+Given `K`<sub>`pub`</sub> (n, e) and the message `m ∈ Z`<sub>`n`</sub><sup>`*`</sup> `= {1,2,...,n-1}`:  
 
 <pre>
-c = E(K<sub>pub</sub>, m) ≡ m<sup>e</sup> mod n
+C = E(K<sub>pub</sub>, m) ≡ m<sup>e</sup> mod n
 </pre>
 
 ### Decryption
@@ -1227,7 +1211,7 @@ But Eve can still attack Authenticated DH, if he manages to obtain a private key
 
 #### Menezes-Qu-Vanstrone (MQV)
 MQV also make use of a shared long-term public key pair, but unlike as in authenticated DH, it's used as additions exponent for the shared secret key.
-Instead of `B`<sup>`a`</sup> Alice would compute the shared secret:
+Instead of `B`<sup>`a`</sup> Alice would compute the shared secret with:
 
 <pre>
 (B*Y<sup>B</sup>)<sup>a + xA</sup> 
@@ -1283,9 +1267,16 @@ e.G 18P:
 
 #### ECs in Cryptography 
 
+
+
 In cryptographic applications one don't want to deal with *real numbers* (2.5, 2.00001, ...), therefore the EC needs to be defined for integers only. To do so, the curves are defined over a finite field  `Z`<sub>`p`</sub> with `p` being prime. 
 
 Build cyclic groups with elliptic curves.
+
+### Didnt't get it
+EC define a cyclic group of points.
+
+
 
 ### Elliptic Curve Discrete Logarithm Problem (ECDLP)
 
@@ -1293,7 +1284,7 @@ Given two points `P` and `Q` on an elliptic curve, the discrete logarithm proble
 
 `dP = Q`
 
-Similar to the `q`<sup>`x`</sup> problem, but not algorithm like the *number field sieve*. higher level of secruity with smaller values. 256 bit for 128 bits of security compared to >= 4096 bits for RSA / DH. 
+- Similar to the `q`<sup>`x`</sup> problem, but not algorithm like the *number field sieve*. higher level of secruity with smaller values. 256 bit for 128 bits of security compared to >= 4096 bits for RSA / DH. 
 
 ### Keys
 
