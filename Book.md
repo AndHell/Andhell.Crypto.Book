@@ -11,6 +11,7 @@ author: And Hell
     1. [Secure Randomness in NETstandard](#secure-randomness-in-netstandard)
     1. [Further Reading](#randomness-further-reading)
 1. [Hashing](#hashing)
+    <!-- 1. [Use Case](#use-case) -->
     1. [Basics](#basics)
         1. [Requirements](#requirements)
         1. [Merkle–Damgård construction](#merkledamgård-construction)
@@ -590,7 +591,7 @@ If things are that bad, what should one do, do be at least somehow safe.
 1. Enter database or API keys during the setup phase on the target system, so they don’t need to be shipped, and can be protected directly. 
 1. Design the system in such a way that keys don't need to be persistent at all.
     1. Use protocols with key rotation 
-    1. Exchange new symmetric keys for each season (See Diffie-Hellmann Key Exchange)
+    1. Exchange new symmetric keys for each session (See Diffie-Hellmann Key Exchange)
 
 # Symmetric Cryptography
 Symmetric cryptography (also known as Secret-Key cryptography) uses the **same key** for encryption and decryption. (Compared to Asymmetric/Public-Key Cryptography where a pair of Keys is needed)
@@ -983,4 +984,215 @@ Just encrypting messages with the same key is often not what you want in a messa
 
 This construction still has weaknesses. If the key get leaked once, all messages send in the past and future can be decrypted. What one want is something similar to the concept of forward and backward secrecy introduced in the [randomness](#randomness) section. If the key for a message gets leaked, it should not be possible to decrypt any previous send messages as well as  future messages.
 
-To archive this, the key needs to be changed for each message. A protocol that does this is the[Signal Protocol](https://signal.org/docs/specifications/doubleratchet/) used by end-to-end encrypted messengers such as [Signal](https://signal.org) or [WhatsApp](https://www.whatsapp.com/). The Signal Protocol also uses asymmetric key cryptography to exchange new symmetric keys.
+To archive this, the key needs to be changed for each message. A protocol that does this is the[Signal Protocol](https://signal.org/docs/specifications/doubleratchet/) used by end-to-end encrypted messengers such as [Signal](https://signal.org) or [WhatsApp](https://www.whatsapp.com/). The Signal Protocol also uses asymmetric key cryptography to exchange new symmetric keys. With this step, the Signal protocol also provides backward secrecy and is "self-healing". Even if a key gets compromised, the attacker would not be able to decrypt future messages. The magic’s of asymmetric cryptography are explained below.
+
+# Asymmetric Cryptography  *Work In Process*
+
+As explained above, one issue with symmetric cryptography is exchanging the keys in such a way, the no evil Eve is able to see them. This is solved with asymmetric cryptography, which uses a private-public key pair. However, most of the times, it's only revered to as public key cryptography.
+
+Instead of trying to protect a secret key, the public key can be shared freely. If Alice now wants to send an encrypted message to Bob, she would need to grep Bob's public key and encrypt her message with it. Only Bob can then decrypt the message with his private key.
+
+Bob can also use **digital signatures** to provide prove, that he was the one, the published something. By signing the info with his private key, anyone that knows his public key, can verify the signature. These digital signatures are the basis for cryptocurrencies like [BitCoin](https://en.bitcoin.it/wiki/Elliptic_Curve_Digital_Signature_Algorithm), but they can also be used to sign [git commits](https://help.github.com/en/articles/managing-commit-signature-verification).
+
+The image below shows how Alice would send an encrypted message to Bob after they exchanged there public keys.
+![Alice sends a message to Bob](img/PubKeyRoundTrip.png)
+
+## Math Basics
+While symmetric encryption is "easy" to understand, since no hard math is involved and bits are only moved around and XORed (sure, in reality it is not that easy), things are different in asymmetric cryptography. Here mathematically hard problems are the basis for secure encryption.
+
+Currently there are three types of hard problems that are used:
+1. Integer factorization *(RSA)*
+1. Discrete logarithm problem   *(Diffie-Hellmann)*
+1. Elliptic curves 
+
+In this introduction the underlying mathematics are not covered in detail. However, some things needs to be explained in order to understand the algorithms.
+
+### Finite Group
+
+A [finite group](https://en.wikipedia.org/wiki/Finite_group) is a set of numbers, that are related to each other be a certain set of rules. For example `Z`<sub>`5`</sub><sup>`*`</sup> is the group with the elements {1,2,3,4} where all operations are performs with **modulo** 5.  The rules are called the four *group axioms*:
+
+- **Closure**: If `x` and `y` are part of the group, than `x*y` also is part of the group. *`4*3=2 (12 mod 5 = 2)`*
+- **Associativity**: `(a*b)*c = a*(b*c)`
+- **Neutral element**: `a*x = a` *for  4\*1=4 1 is the neutral element* 
+- **Inverse element**: `a*a`<sup>`-1`</sup>` = 1` *for example: `4*4=1 (16 mod 5 = 1)`*
+
+A group that is also *commutative* `a*b = b*a` is called an [Abelian group](https://en.wikipedia.org/wiki/Abelian_group)
+
+Beside *multiplicative* groups, that use *multiplication* as a group operation, they can also be defined with *addition* as group operation.
+
+### Cyclic Group
+
+A [cyclic group](https://en.wikipedia.org/wiki/Cyclic_group), is a group that can be generated by the powers of an identity element `P`. This element is also called the **generator**.
+
+`P, P², P³, ...`   
+
+Example for Z<sub>5</sub><sup>*</sup> can be generated with **2<sup>x</sup>**
+
+|power | element | mod |
+|:-:|:-:|--:|
+|2<sup>1</sup>|2| *2 mod 5* |
+|2<sup>2</sup>|4| *4 mod 5* |
+|2<sup>3</sup>|3| *8 mod 5* |
+|2<sup>4</sup>|1| *16 mod 5*|
+|2<sup>5</sup>|2| *32 mod 5* same as 2<sup>1</sup>|
+
+Or with **3<sup>x</sup>**
+|power | element | mod |
+|:-:|:-:|--:|
+|3<sup>1</sup>|3| *3 mod 5*|
+|3<sup>2</sup>|4| *9 mod 5*|
+|3<sup>3</sup>|2| *27 mod 5*|
+|3<sup>4</sup>|1| *81 mod 5*|
+|3<sup>5</sup>|3| *243 mod 5* same as 3<sup>1</sup>|
+
+
+All  Z<sub>p</sub><sup>*</sup> where `p` is prime, are cyclic finite groups.
+
+## RSA
+RSA was designed by Riverst, Shamir and Adelman, in 1977 while they were trying to prove that the concepts for the [Diffie-Hellmann Key Exchange](#diffie-hellmann-key-exchange) are wrong. Instead of doing so, they came up with RSA.
+
+### Prime factorization
+RSA is based on the hardness of integer factorization. Given a number `N` with `N = p*q` where `p` and `q` are prime, there is no *fast* algorithm to find `p` and `q`.
+While this is possible to do for small primes, there is no efficient algorithm to deal with really large numbers ( >= 1024 bit). 
+
+The best know algorithm to find the factors is the *general number field sieve ([GNFS](https://www.math.vt.edu/people/brown/doc/briggs_gnfs_thesis.pdf))*. As a result of this algorithm, ≥ 4096 bit keys are needed to archive the desired 128 bit of security. Currently key sizes of 2048 (90 bits of security) or 4096 are suggested.
+
+### Key generation
+To generate a RSA key pair five steps are needed.
+
+| | step | note |
+|:-: |:-----|:-----|
+| 1.| choose two large primes `p` and `q`                   | `p,q` ≥ 2<sup>1024</sup> *better 2<sup>2048</sup>* |
+| 2.| `n = p * q`                                           | `n` ≥ 2<sup>2048</sup> *better 2<sup>4096</sup>* |
+| 3.| `phi(n) = (p-1) * (q-1)`                               | order (number of elements) of the group `Z`<sub>`n`</sub><sup>`*`</sup> *Euler's totient function*|
+| 4.| `K`<sub>`pub`</sub>: choose `e ∈ {1,2,...,phi(n)-1}` such that `gcd(e, phi(n)) = 1`   | e and phi(n) are coprim |
+| 5.| `K`<sub>`pri`</sub>: d = e<sup>-1</sup> s.t. `d * e ≡ 1 mod phi(n)`    | d can be computed with the [ext. EA](https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm)|
+
+<pre>
+K<sub>pub</sub>: (n, e)  
+K<sub>pri</sub>: (d)
+</pre>
+
+### Encryption
+To encrypt a message, you interpret the messages bytes as integer and compute the message to the exponent `e` (of the public key) modulo `n`.
+
+Given `K`<sub>`pub`</sub> (n, e) and the message `m ∈ Z`<sub>`n`</sub><sup>`*`</sup> `= {1,2,...,n-1}`:  
+
+<pre>
+C = E(K<sub>pub</sub>, m) ≡ m<sup>e</sup> mod n
+</pre>
+
+### Decryption
+To decrypt the ciphertext, you compute the ciphertext to the power `d` (the private key) modulo `n`.
+
+Given `K`<sub>`pri`</sub>: (d) and the ciphertext `c`:  
+
+<pre>
+m = D(K<sub>pri</sub>, c) ≡ c<sup>d</sup> mod n
+</pre>
+
+To prove that `m ≡ c`<sup>`d`</sup> `mod n` you can replace `c` with the encryption function and solve the equation.
+
+<pre>
+m ≡ c<sup>d</sup> mod n
+m ≡ (m<sup>e</sup>)<sup>d</sup> mod n 
+m ≡ m<sup>e * d</sup> mod n
+m ≡ m<sup>e * e<sup>-1</sup></sup> mod n 
+m ≡ m<sup>1</sup> mod n
+m ≡ m mod n
+</pre>
+
+### Padding
+Without padding, RSA encryption is malleable. If you multiply to ciphertexts `c1` and `c2` you get the ciphertext for the multiplication of the plaintexts `m1` and `m2`.
+
+<pre>
+c1*c2 mod n = m1<sup>e</sup>*m2<sup>e</sup> mod n = (m1*m2)<sup>e</sup> mod n
+</pre>
+
+It should not be possible to compute this ciphertext without knowing `m1` and `m2`.
+
+Optimal Asymmetric Encryption Padding **OAEP** makes RSA nonmalleable. OAEP create a bit string that is as large as the modulus `n` and contains randomness and extra data that are padded to the message before the encryption with RSA.
+
+### Signing with RSA
+
+Signing messages with RSA works similar to encryption and decryption, but the other way around. Instead of starting with the public key, the private key `d` is used to compute the signature `s`.
+
+<pre>
+s = m<sup>d</sup> mod n
+</pre>
+
+Everyone can then verify the signature by using the public key `e`.
+
+<pre>
+m = s<sup>e</sup> mod n
+</pre>
+
+Like encryption, signing also has weaknesses if RSA is applied directly to the message. The easiest way to mitigate these attacks, is to sign just the [Hash](#hash) of the message. The Probabilistic Signature Scheme (PSS) can also be used and is roughly what OAEP is for encryption.
+
+### Cons
+
+RSA needs really big keys in order to work and encryption is quite slow compared to symmetric algorithms like AES. This creates a big overhead for communication. In most protocols RSA is therefore only used to exchange symmetric keys that are then used to encrypt the real data. 
+
+Like explained above, to create signatures, one only sign the hash of a message.
+
+## Diffie-Hellmann
+Whitfield Diffie and Martin Hellmann designed a Key Exchange scheme, which allows two parties to exchange a secret key over a public channel, in 1976. In 2015 they recieved the Turing Award for their interduction of public key cryptography.
+
+### Key Exchange
+The Diffie-Hellmann Key Exchange is quite beautiful in its simplicity. DH works with a group Z<sub>p</sub><sup>*</sup> with publicly a shared prim `p` and a generator `α`.
+
+To create a private key Alice and Bob chooses `a` and `b` ∈ {2,3,...,p-1}. The public keys `A` and `B` can then be computed with `A = α`<sup>`a`</sup> and `B = α`<sup>`b`</sup>. After exchanged the public keys, the session key `K`<sub>`AB`</sub> can be computed.  To get the session key, the shared public key is raised to the power of the private key. K<sub>AB</sub> = A<sup>b</sup> =  B<sup>a</sup>.  
+Since everything is performed in Z<sub>p</sub><sup>*</sup>, every arithmetic operation is performed modulo `p`.
+
+![Diffie-Hellmann Key Exchange](img/DiffieHellmann.png)
+
+Even though the attack can see `A` and `B`, he can not compute `K`<sub>`AB`</sub> because can recover the secret exponents `a` and `b`.
+
+This shared secret  `K`<sub>`AB`</sub> can then be used to derive keys, with a Key Derivation Function (KDF), that are used for symmetric encryption (Like AES or Salsa20). This step is needed to remove bias from the shared secret that is given since its part of the group Z<sub>p</sub><sup>*</sup>. Hashing the shared secret removes this bias and introduce an equal probability to each bit to be either 0 or 1.
+
+To provide 128 bits of security, DH needs the same size for the public prime `p` as RSA for `n`. A 2028 bit prime delivers 90 bits of security, so for 128 bit of security a 4098 bit `p` should be used.
+
+### Discrete  Logarithm Problem
+
+The security of Diffie Hellmann comes down to the hardness to recover `x` from `q`<sup>`x`</sup>. This problem is known as the Discrete Logarithm Problem (DPL).
+
+For a given `p, b ∈ Z`<sub>`p`</sub><sup>`*`</sup> and a prime `a`, find `x`.
+
+<pre>
+a<sup>x</sup> = b mod p
+</pre>
+
+For large `p`'s there is no known fast algorithm to find `x`.
+The best currently available algorithm is the *number field sieve*, which is similar, but not equal to the *GNFS* that was mentioned above for the factorization in RSA.
+
+
+### Attacks
+The key exchange explained above is called the Anonymous Diffie-Hellmann.
+The exchange of the public key is not *authenticated*, so Alice and Bob cannot be sure that they are really talking to each other. This opens a windows for a number of Man-in-the-Middle  attacks.  
+For example evil Eve can block the messages for the public keys `A` and `B` and calculate own values that he forwards and responds instead. As a result Eve has a shared secret with Alice and another shared Secret with Bob, while they don't. If Alice and Bob now wants to exchange messages, Eve can read every message by decrypting them, and then forwarded them newly encrypted.
+
+#### Authenticated Diffie-Hellmann
+The attack explained above can be avoided with Authenticated Diffie-Hellmann.  
+If Alice and Bob also shares a public key pair, they can use this, to sign their key exchange messages. Then they can ensure, that the public key is indeed the one computed by their opponent and not by Eve. 
+
+But Eve can still attack Authenticated DH, if he manages to obtain a private key, for example Alice's `a`. He then would be able to decrypted messages, which where encrypt in this session, as well as start a new key exchange with Bob and reuse a captured signature for `a`'s public key. Thus, even Authenticated Diffie-Hellmann don't provide **forward secrecy** against **data leak** attacks.
+
+#### Menezes-Qu-Vanstrone (MQV)
+MQV also make use of a shared long-term public key pair, but unlike as in authenticated DH, it's used as additions exponent for the shared secret key.
+Instead of `B`<sup>`a`</sup> Alice would compute the shared secret with:
+
+<pre>
+(B*Y<sup>B</sup>)<sup>a + xA</sup> 
+</pre>
+
+where `Y` is Bob's public and `x` Alice's private key.
+
+While this is protected against a *data leak* attack where Eve would get control over a ephemeral key (`a` and `b`), it does not private protected against a *breach*. In a breach, also the long term keys are compromised. 
+
+Even thought MQV provides more security than Authenticated Diffie-Hellmanm, it is nearly used nowhere. It's harder to get MQV right compared to the easier authenticated DH, and does not provide a security benefit that justify the added complexity.
+
+<!-- #### Asyncron X3DH
+[https://signal.org/docs/specifications/x3dh/]
+Let's go batshit crazy. -->
+
+### Fazit
