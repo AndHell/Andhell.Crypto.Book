@@ -20,6 +20,9 @@ I'm not an expert in cryptography. Everything in this document is just explained
     - [x] Stream Cipher
     - [x] AES
     - [x] Salsa20
-- [ ] Asymmetric Cryptography *Soon*
+- [x] Asymmetric Cryptography *Soon*
+    - [x] RSA
+    - [x] Diffie-Hellmann
+    - [ ] ECC
 - [ ] TLS *Planned*
 - [ ] Designing Protocols and Using Cryptography *Planned*
