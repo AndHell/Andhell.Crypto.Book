@@ -66,38 +66,6 @@ author: And Hell
     1. [Authentication](#authentication)
     1. [Usage in Protocols](#usage-in-protocols)
 
-# Getting Started
-- new software every day, new hacks and databreaches even more.
-- need for secure software es enormous
-- no secure software without cryptography
-- crypto only makes no secure software
-
-- needs to be part of every layer 
-    - new idea -> ask what attack surface do i open with this
-    - ...
-    - customer also needs to understand the security threats and what protections are available
-
-
-- What is cryptography 
-
-# About 
-
-- Only a short overview
-    - What exists
-    - What can be done
-    - How does it work?
-- Not complete and not evrything covered that one need to no to use crypto
-    - Hard Part : Design a protocol 
-        - Key rotation
-        - Verification
-        - ...
-    
-- To study more
-    - Video Lecture by Paar
-    - Books
-        - [Serious cryptography (Jean-Philippe Aumasson - 2018)](https://nostarch.com/seriouscrypto) 
-        - [Cryptography engineering (Bruce Schneier - 2010)](https://www.schneier.com/books/cryptography_engineering/)
-
 # Kerckhoffs' Principle
 > One assumption made in all models is the so-called Kerckhoffs' principle, which states that the security of a cipher should rely only on the secrecy of the key and not on the secrecy of the cipher. This may sound obvious today, when ciphers and protocols are publicly specified and used by everyone. But historically, Dutch linguist Auguste Kerckhoffs was referring to military encryption machines specifically designed for a given army or division. Quoting from his 1883 essay “La Cryptographie Militaire,” where he listed six requirements of a military encryption system: “The system must not require secrecy and can be stolen by the enemy without causing trouble.”
 [Serious Cryptography] 
