@@ -119,7 +119,7 @@ A hash function takes an arbitrary input and turns it into a fixed length output
 For a given hash, it should be impossible to find a message m so that m generates the hash.  
 There also is a second pre image resistance that says, when given a message it should be impossible to find a second message with the same hash.
 
-Since hash functions generate fixed length outputs, the number of possible outputs is also limited. Do to the arbitrary length of all possible inputs, according to the [pigeonhole principle](https://en.wikipedia.org/wiki/Pigeonhole_principle), there need to be messages that generate the same hash output. But to be considered as a secure hashing algorithm these collisions need to be hard to find. This gives the third property, collision resistance. 
+Since hash functions generate fixed length outputs, the number of possible outputs is also limited. Due to the arbitrary length of all possible inputs, according to the [pigeonhole principle](https://en.wikipedia.org/wiki/Pigeonhole_principle), there need to be messages that generate the same hash output. But to be considered as a secure hashing algorithm these collisions need to be hard to find. This gives the third property, collision resistance. 
 
 In the past, a lot of hashing functions failed at the collision resistance. For example, [MD5 was broken](https://en.wikipedia.org/wiki/MD5#Collision_vulnerabilities) in 1996, and [SHA1](https://en.wikipedia.org/wiki/SHA-1#Attacks) in 2017. These algorithms should be avoided for new developments and, therefore, they are not further described.
 
@@ -940,7 +940,7 @@ public void AesExample()
 
 ### Authentication
 
-All the modes described above only provides confidentiality against attackers. Even if they can get the plaintext, they can still mess up with the cipher text and flip bits. None of the above described modes detect such tampered messages. Instead the message is decrypted without raising an exception. But of course the resulting plaintexts are not identical.
+All the modes described above only provide confidentiality against attackers, not integrity. Even if they cannot get the plaintext, they can still mess up with the cipher text and flip bits. None of the above described modes detect such tampered messages. Instead the message is decrypted without raising an exception. But of course the resulting plaintexts are not identical.
 
 <!--ToDo: Change Encoding-->
 ```
@@ -953,7 +953,15 @@ tampered:   000000000054D877DAEEC043E1224E3E112B5170B815C66B99DD0C326DF4BDB4F83A
 recieved:   ��ڢ\u0001my�\u0010>�Q!�f\\?T�iele kühe machen mühe
 ```
 
-### MACs
+#### Authenticated Ciphers
+
+There are cipher operation modes that provides integrity, the NIST standard GCM (Galois/Counter Mode) for example.
+
+GCM can also be used for **AEAD** (Authenticated Encryption with Additional Data). Instead of only validating the plaintext, additional data that are not encrypted can also be validated. With this, the integrity of headers, or other meta information, can be ensured as well.
+
+As of March 2019 AES with GCM is, unfortunately not available in NETstandard. But it can be used in the current dotnet core 3 [preview](https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.aesgcm?view=netcore-3.0).
+
+#### MACs
 
 Alternatively a Message Authentication Code (MAC) can be computed and sent together with the cipher text. The receiver can then decrypt the cipher text, compute the MAC himself and compare it with the received one. If both MACs are equal, the cipher text was not tampered. 
 
@@ -968,14 +976,6 @@ There are three type of AE (Authenticated Encryption) with a MAC.
 
 It's suggested to use Encrypt-Then-MAC, since a tampered message gets detected before the message needs to be decrypted.
 Algorithms such as HMAC-SHA256 or Poly1305 can be used to generate the MAC. Poly1305 is a hash algorithm with a dedicated design to compute MACs. 
-
-### Authenticated Ciphers
-
-There are cipher operation modes that provides integrity, the NIST standard GCM (Galois/Counter Mode) for example.
-
-GCM can also be used for **AEAD** (Authenticated Encryption with Additional Data). Instead of only validating the plaintext, additional data that are not encrypted can also be validated. With this, the integrity of headers, or other meta information, can be ensured as well.
-
-As of March 2019 AES with GCM is, unfortunately not available in NETstandard. But it can be used in the current dotnet core 3 [preview](https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.aesgcm?view=netcore-3.0).
 
 ### Usage in Protocols
 
