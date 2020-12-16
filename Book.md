@@ -807,9 +807,9 @@ Output array:
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
 |  0  |  D  |  A  |  7  |
-|  4  |  1  |  E  |  B  |
-|  8  |  5  |  2  |  F  |
-|  C  |  9  |  6  |  3  |
+|  5  |  6  |  7  |  2  |
+|  A  |  B  |  8  |  9  |
+|  F  |  C  |  D  |  E  |
 
 In the image below, this creates the confusing mess of lines.
 
