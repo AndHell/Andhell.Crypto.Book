@@ -797,19 +797,19 @@ Input array:
 
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
-|  0  |  1  |  2  |  3  |
-|  4  |  5  |  6  |  7  |
-|  8  |  9  |  A  |  B  |
-|  C  |  D  |  E  |  F  |
+|  0  |  4  |  8  |  C  |
+|  1  |  5  |  9  |  D  |
+|  2  |  6  |  A  |  E  |
+|  3  |  7  |  B  |  F  |
 
 Output array:
 
 |     |     |     |     |
 |:---:|:---:|:---:|:---:|
-|  0  |  1  |  2  |  3  |
-|  5  |  6  |  7  |  4  |
-|  A  |  B  |  8  |  9  |
-|  F  |  C  |  D  |  E  |
+|  0  |  4  |  8  |  C  |
+|  5  |  9  |  D  |  1  |
+|  A  |  E  |  2  |  6  |
+|  F  |  3  |  7  |  B  |
 
 In the image below, this creates the confusing mess of lines.
 
