@@ -150,7 +150,7 @@ Given a message `x1`, no second message `x2` should be found, so that `Hash(x1) 
 
 #### Collision Resistance
 
-It should not be possible to find a pair of messages `x1` and `x1` (with x1 ≠ x1), so that `Hash(x1) = Hash(x1)`.
+It should not be possible to find a pair of messages `x1` and `x2` (with x1 ≠ x2), such that `Hash(x1) = Hash(x2)`.
 
 ![Collision Resistance](img/Collision.png)
 
